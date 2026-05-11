@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "build": "cd app && npm ci && npm run build",
+    "build": "cd app && npm install && npm run build",
     "cf-deploy": "echo 'Deployed by Cloudflare Pages'"
   }
 }
