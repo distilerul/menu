@@ -1,6 +1,8 @@
 name = "menu-app"
-pages_build_output_dir = "app/dist"
 compatibility_date = "2026-05-11"
+
+[assets]
+directory = "dist"
 
 [observability]
 enabled = false
