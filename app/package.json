@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
-    "deploy": "wrangler deploy",
+    "deploy": "wrangler pages deploy",
     "cf-deploy": "echo 'Deployed by Cloudflare Pages'"
   },
   "dependencies": {
