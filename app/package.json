@@ -6,9 +6,10 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "check": "tsc && vite build && wrangler deploy --dry-run",
     "preview": "vite preview",
-    "deploy": "npm run build && wrangler pages deploy",
-    "cf-deploy": "wrangler pages deploy"
+    "deploy": "wrangler deploy",
+    "cf-deploy": "echo 'Deployed by Cloudflare Pages'"
   },
   "dependencies": {
     "react": "^18.3.1",
