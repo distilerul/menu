@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm create *)",
+      "PowerShell(Get-Command node, npm, pnpm, yarn, bun 2>&1)",
+      "PowerShell($env:PATH)",
+      "PowerShell(winget --version 2>&1)",
+      "PowerShell(winget install OpenJS.NodeJS.LTS --accept-package-agreements --accept-source-agreements 2>&1)",
+      "Bash(npm run *)",
+      "PowerShell($env:PATH = [System.Environment]::GetEnvironmentVariable\\('PATH', 'Machine'\\) + ';' + [System.Environment]::GetEnvironmentVariable\\('PATH', 'User'\\); cd c:\\\\src\\\\menu\\\\app; npm run build 2>&1)"
+    ]
+  }
+}
