@@ -1,5 +1,5 @@
 name = "menu-app"
-pages_build_output_dir = "app/dist"
+pages_build_output_dir = "dist"
 compatibility_date = "2026-05-11"
 
 [observability]
