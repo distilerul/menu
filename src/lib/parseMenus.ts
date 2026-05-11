@@ -6,6 +6,10 @@ const rawFiles = import.meta.glob('../../images/**/*.md', {
   eager: true,
 }) as Record<string, string>
 
+const r2ImageBaseUrl = (import.meta.env.VITE_R2_IMAGE_BASE_URL ?? '')
+  .trim()
+  .replace(/\/+$/, '')
+
 function parseIngredient(line: string): Ingredient {
   const raw = line.replace(/^-\s+/, '')
   const optional = /\(opțional\)/i.test(raw)
@@ -74,7 +78,9 @@ function parseMenu(content: string, folder: string, filename: string): Menu {
     mealCount,
     folder: folder as Menu['folder'],
     meals,
-    imageUrl: `/${folder}/${filename}.png`,
+    imageUrl: r2ImageBaseUrl
+      ? `${r2ImageBaseUrl}/${folder}/${filename}.png`
+      : `/${folder}/${filename}.png`,
     snack,
     rawContent: content,
   }
