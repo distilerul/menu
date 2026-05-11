@@ -2,7 +2,8 @@ import type { Ingredient, MealSection, Menu, MealCount } from './types'
 
 // Paths are relative to this file: app/src/lib/ → ../../../images/
 const rawFiles = import.meta.glob('../../../images/**/*.md', {
-  as: 'raw',
+  query: '?raw',
+  import: 'default',
   eager: true,
 }) as Record<string, string>
 
