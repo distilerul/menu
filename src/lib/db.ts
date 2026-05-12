@@ -2,15 +2,14 @@ import type { Menu, MealSection, Ingredient } from './types'
 
 export interface Env {
   DB: D1Database
+  R2_IMAGE_BASE_URL?: string
 }
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 
-const r2Base = ((import.meta as any).env?.VITE_R2_IMAGE_BASE_URL ?? '')
-  .trim().replace(/\/+$/, '') as string
-
-function imageUrl(folder: string, image: string): string {
-  return r2Base ? `${r2Base}/${folder}/${image}` : `/${folder}/${image}`
+function imageUrl(folder: string, image: string, env?: Env): string {
+  const base = env?.R2_IMAGE_BASE_URL?.trim().replace(/\/+$/, '') ?? ''
+  return base ? `${base}/${folder}/${image}` : `/${folder}/${image}`
 }
 
 // ── menus ─────────────────────────────────────────────────────────────────────
@@ -39,7 +38,7 @@ const ALL_MENUS_SQL = `
   ORDER BY m.title, ml.meal_index, i.id
 `
 
-function rowsToMenus(rows: any[]): Menu[] {
+function rowsToMenus(rows: any[], env?: Env): Menu[] {
   const menuMap = new Map<string, any>()
 
   for (const row of rows) {
@@ -50,7 +49,7 @@ function rowsToMenus(rows: any[]): Menu[] {
         mealCount: row.meal_count as 1 | 2 | 3,
         folder: row.folder,
         image: row.image,
-        imageUrl: imageUrl(row.folder, row.image),
+        imageUrl: imageUrl(row.folder, row.image, env),
         snack1: row.snack1,
         snack2: row.snack2,
         _meals: new Map<number, any>(),
@@ -88,21 +87,21 @@ function rowsToMenus(rows: any[]): Menu[] {
 
 export async function getAllMenus(env: Env): Promise<Menu[]> {
   const { results } = await env.DB.prepare(ALL_MENUS_SQL).all()
-  return rowsToMenus(results)
+  return rowsToMenus(results, env)
 }
 
 export async function getMenusByFolder(folder: string, env: Env): Promise<Menu[]> {
   const { results } = await env.DB.prepare(
     ALL_MENUS_SQL.replace('FROM menus m', 'FROM menus m WHERE m.folder = ?1')
   ).bind(folder).all()
-  return rowsToMenus(results)
+  return rowsToMenus(results, env)
 }
 
 export async function getMenuById(id: string, env: Env): Promise<Menu | null> {
   const { results } = await env.DB.prepare(
     ALL_MENUS_SQL.replace('FROM menus m', 'FROM menus m WHERE m.id = ?1')
   ).bind(id).all()
-  const menus = rowsToMenus(results)
+  const menus = rowsToMenus(results, env)
   return menus[0] ?? null
 }
 

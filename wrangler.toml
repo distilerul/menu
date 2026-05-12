@@ -1,4 +1,5 @@
 name = "menu"
+main = "src/worker.ts"
 compatibility_date = "2026-05-11"
 
 # D1 Database binding — update database_id after creating database
