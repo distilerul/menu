@@ -1,5 +1,11 @@
 name = "menu"
 compatibility_date = "2026-05-11"
 
+# D1 Database binding — update database_id after creating database
+[[d1_databases]]
+binding = "DB"
+database_name = "menu-db"
+database_id = "2caf2e16-1cab-4754-bfd3-13e05bd316a2"
+
 [assets]
 directory = "dist"

@@ -24,8 +24,7 @@ interface Props {
 
 export default function MenuCard({ menu, onPick, onClick, compact = false }: Props) {
   const subtitle = menu.meals
-    .filter((m) => m.heading !== 'Ingrediente' && m.heading !== 'Mod de preparare')
-    .map((m) => m.subtitle || m.heading)
+    .map((m) => m.dish)
     .filter(Boolean)
     .join(' · ')
 

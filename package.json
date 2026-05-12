@@ -16,6 +16,7 @@
     "react-router-dom": "^7.15.0"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250511.0",
     "@tailwindcss/postcss": "^4.3.0",
     "@types/node": "^25.6.2",
     "@types/react": "^19.2.14",
@@ -24,6 +25,7 @@
     "autoprefixer": "^10.5.0",
     "postcss": "^8.5.14",
     "tailwindcss": "^4.3.0",
+    "ts-node": "^10.9.2",
     "typescript": "~6.0.3",
     "vite": "^8.0.12",
     "wrangler": "^4.90.0"

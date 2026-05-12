@@ -21,7 +21,7 @@ const FILTERS: { label: string; value: MealCount | 0 }[] = [
 ]
 
 export default function Browser() {
-  const { menus, assignToDay } = usePlanner()
+  const { menus, loading, assignToDay } = usePlanner()
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
 
@@ -114,18 +114,26 @@ export default function Browser() {
 
       {/* Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-        {filtered.map((menu) => (
-          <MenuCard
-            key={menu.id}
-            menu={menu}
-            onClick={setActiveMenu}
-            onPick={pickDayIndex !== null ? handlePick : undefined}
-          />
-        ))}
-        {filtered.length === 0 && (
-          <div className="col-span-full text-center py-16 text-stone-400">
-            Niciun meniu găsit
-          </div>
+        {loading ? (
+          Array.from({ length: 8 }).map((_, i) => (
+            <div key={i} className="rounded-xl bg-stone-100 animate-pulse aspect-[3/4]" />
+          ))
+        ) : (
+          <>
+            {filtered.map((menu) => (
+              <MenuCard
+                key={menu.id}
+                menu={menu}
+                onClick={setActiveMenu}
+                onPick={pickDayIndex !== null ? handlePick : undefined}
+              />
+            ))}
+            {filtered.length === 0 && (
+              <div className="col-span-full text-center py-16 text-stone-400">
+                Niciun meniu găsit
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>

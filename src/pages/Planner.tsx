@@ -62,7 +62,7 @@ function SlotRow({
                 loading="lazy"
               />
               <p className="text-xs font-medium text-stone-700 leading-tight line-clamp-2 flex-1 min-w-0">
-                {meal.subtitle || meal.heading}
+                {meal.dish || menu.title}
               </p>
             </div>
             <div className="flex gap-1">

@@ -2,15 +2,16 @@ import {
   createContext,
   useContext,
   useState,
+  useEffect,
   useCallback,
   type ReactNode,
 } from 'react'
 import { loadPlan, savePlan, loadChecked, saveChecked } from './storage'
-import { loadMenus } from './parseMenus'
 import type { Menu, DayPlan, SlotKey, MealSlot } from './types'
 
 interface PlannerCtx {
   menus: Menu[]
+  loading: boolean
   weekPlan: DayPlan[]
   checkedItems: Set<string>
   assignToDay: (day: number, menuId: string, slot?: SlotKey) => void
@@ -22,58 +23,83 @@ interface PlannerCtx {
 
 const Ctx = createContext<PlannerCtx | null>(null)
 
-const SLOT_PATTERNS: Record<SlotKey, RegExp> = {
-  micDejun: /mic\s*dejun/i,
-  pranz: /pr[aâ]nz/i,
-  cina: /cin[aă]/i,
-}
-
-function buildSlot(menuId: string, pattern: RegExp, meals: Menu['meals']): MealSlot | null {
-  const idx = meals.findIndex((m) => pattern.test(m.heading))
-  return idx >= 0 ? { menuId, mealIndex: idx } : null
+function mealBySlot(menu: Menu, slot: SlotKey): MealSlot | null {
+  const idx = menu.meals.findIndex((m) => m.slot === slot)
+  return idx >= 0 ? { menuId: menu.id, mealIndex: idx } : null
 }
 
 function autoPopulate(menu: Menu): Partial<DayPlan> {
-  if (menu.mealCount !== 3) {
-    return { micDejun: { menuId: menu.id, mealIndex: 0 } }
+  if (menu.mealCount === 3) {
+    return {
+      micDejun: mealBySlot(menu, 'micDejun'),
+      gustare1: menu.snack1 ?? null,
+      pranz: mealBySlot(menu, 'pranz'),
+      cina: mealBySlot(menu, 'cina'),
+    }
   }
+  // 1- or 2-meal: assign to the slot declared on the first meal, default micDejun
+  const declared = menu.meals[0]?.slot
+  const target: SlotKey =
+    declared === 'pranz' || declared === 'cina' ? declared : 'micDejun'
+  return { [target]: { menuId: menu.id, mealIndex: 0 } }
+}
+
+const r2Base = (import.meta.env.VITE_R2_IMAGE_BASE_URL ?? '')
+  .trim()
+  .replace(/\/+$/, '')
+
+function withImageUrl(menu: any): Menu {
   return {
-    micDejun: buildSlot(menu.id, SLOT_PATTERNS.micDejun, menu.meals),
-    gustare1: menu.snack ?? null,
-    pranz: buildSlot(menu.id, SLOT_PATTERNS.pranz, menu.meals),
-    cina: buildSlot(menu.id, SLOT_PATTERNS.cina, menu.meals),
+    ...menu,
+    imageUrl: r2Base
+      ? `${r2Base}/${menu.folder}/${menu.image}`
+      : `/${menu.folder}/${menu.image}`,
   }
 }
 
 export function PlannerProvider({ children }: { children: ReactNode }) {
-  const [menus] = useState<Menu[]>(() => loadMenus())
+  const [menus, setMenus] = useState<Menu[]>([])
+  const [loading, setLoading] = useState(true)
   const [weekPlan, setWeekPlan] = useState<DayPlan[]>(() => loadPlan())
   const [checkedItems, setCheckedItems] = useState<Set<string>>(() => loadChecked())
 
-  const assignToDay = useCallback((day: number, menuId: string, slot?: SlotKey) => {
-    const menu = menus.find((m) => m.id === menuId)
-    if (!menu) return
+  useEffect(() => {
+    fetch('/api/menus')
+      .then((r) => r.json())
+      .then((data: any[]) => setMenus(data.map(withImageUrl)))
+      .catch((e) => console.error('Failed to load menus:', e))
+      .finally(() => setLoading(false))
+  }, [])
 
-    setWeekPlan((prev) => {
-      const next = [...prev]
-      const current = { ...next[day] }
+  const assignToDay = useCallback(
+    (day: number, menuId: string, slot?: SlotKey) => {
+      const menu = menus.find((m) => m.id === menuId)
+      if (!menu) return
 
-      if (!slot) {
-        // No slot specified: if 3-meal menu, auto-populate all; otherwise assign to micDejun
-        const populated = autoPopulate(menu)
-        next[day] = { micDejun: null, gustare1: null, pranz: null, gustare2: null, cina: null, ...populated }
-      } else {
-        // Assign to specific slot — find best section index
-        const pattern = SLOT_PATTERNS[slot]
-        const idx = menu.meals.findIndex((m) => pattern.test(m.heading))
-        current[slot] = { menuId, mealIndex: idx >= 0 ? idx : 0 }
-        next[day] = current
-      }
-
-      savePlan(next)
-      return next
-    })
-  }, [menus])
+      setWeekPlan((prev) => {
+        const next = [...prev]
+        if (!slot) {
+          const populated = autoPopulate(menu)
+          next[day] = {
+            micDejun: null,
+            gustare1: null,
+            pranz: null,
+            gustare2: null,
+            cina: null,
+            ...populated,
+          }
+        } else {
+          const idx = menu.meals.findIndex((m) => m.slot === slot)
+          const current = { ...next[day] }
+          current[slot] = { menuId, mealIndex: idx >= 0 ? idx : 0 }
+          next[day] = current
+        }
+        savePlan(next)
+        return next
+      })
+    },
+    [menus],
+  )
 
   const clearDaySlot = useCallback((day: number, slot: SlotKey) => {
     setWeekPlan((prev) => {
@@ -110,7 +136,17 @@ export function PlannerProvider({ children }: { children: ReactNode }) {
 
   return (
     <Ctx.Provider
-      value={{ menus, weekPlan, checkedItems, assignToDay, clearDaySlot, clearDay, toggleItem, clearChecked }}
+      value={{
+        menus,
+        loading,
+        weekPlan,
+        checkedItems,
+        assignToDay,
+        clearDaySlot,
+        clearDay,
+        toggleItem,
+        clearChecked,
+      }}
     >
       {children}
     </Ctx.Provider>
